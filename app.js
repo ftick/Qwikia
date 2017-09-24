@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const request = require('request');
 const async = require('async');
 var question = require('./question.js');
+var DEBUG = false;
 var answer = 'ANSWER';
 const app =express();
 app.use(bodyParser.json());
@@ -49,7 +50,8 @@ function sendMessage(event) {
             wikiNotFoundError();
             return;
           }
-          //console.log(sections[0].content[0].text);
+          
+          //
           if(sections[key]) {
             for(var i = 0; i < sections.length; i++) {
               if(sections[key].content[i]) {
@@ -75,6 +77,7 @@ function sendMessage(event) {
           });
         }
       });
+       // Handle callbacks
     }, function (err) {
       if (err) {
         return callback(null);
@@ -84,6 +87,7 @@ function sendMessage(event) {
     });
   }
 
+  //
   function getFiftyArticles() {
     var articles =[];
     var siteUrl = 'http://' + topic + '.wikia.com/api/v1/Articles/Top?Limit=250';
@@ -136,19 +140,13 @@ function sendMessage(event) {
               console.log(data);
 
               if(data.length > 1) {
-                /*
-                var key = data[0].name;
-                var index = data[0].mentions[0].text.beginOffset;
-                var length = key.length;
-                console.log(length);
-                var newText = articlesData[0];
-                var blank='_______';
-                newText = articlesData[0].substring(0,index) + blank + articlesData[0].substring(index+length);
-                */
+
                 var blank='_______';
                 answer = data[0].name;
-                var newText = answer + ':::';
                 console.log(answer.length);
+
+                var newText = '';
+                if(DEBUG) newText += 'ANS:::' + answer + '\n\n';
 
                 // Insert blanks into all occurrences of answer within question
                 var arrAns = articlesData[0].split(answer);
