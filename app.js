@@ -130,8 +130,8 @@ function sendMessage(event) {
               if(data.length > 1) {
 
                 var blank='_______';
-                var newText = answer + ':::';
                 answer = data[0].name;
+                var newText = answer + ':::';
                 console.log(answer.length);
 
                 // Insert blanks into all occurrences of answer within question
