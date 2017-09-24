@@ -136,7 +136,7 @@ function sendMessage(event) {
               console.log(data);
 
               if(data.length > 1) {
-
+                /*
                 var key = data[0].name;
                 var index = data[0].mentions[0].text.beginOffset;
                 var length = key.length;
@@ -144,8 +144,8 @@ function sendMessage(event) {
                 var newText = articlesData[0];
                 var blank='_______';
                 newText = articlesData[0].substring(0,index) + blank + articlesData[0].substring(index+length);
-
-                /*var blank='_______';
+                */
+                var blank='_______';
                 answer = data[0].name;
                 var newText = answer + ':::';
                 console.log(answer.length);
@@ -157,7 +157,7 @@ function sendMessage(event) {
                   if(i < arrAns.length - 1){
                     newText += blank;
                   }
-                }*/
+                }
 
                 // Send request to Messenger
                 request({
