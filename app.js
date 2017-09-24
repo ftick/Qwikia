@@ -64,7 +64,15 @@ function sendMessage(event) {
         } else {
           // Topic not found, prompt user to enter different topic
           console.log(JSON.stringify(body));
-          wikiNotFoundError();
+          request({
+            url: 'https://graph.facebook.com/v2.10/me/messages',
+            qs: {access_token: 'EAARiEsAuvXEBAHvp6kDS4bAcyIrkudgRZCieT78BWO7ZAsbfAzIdkjMe7EJlv731DezS6Ic5crJs2OOTZCIVXVf3GijGjnwzNRkcZAwJHJaFPfdERSsp9dvZCuKUnCchIEZCjE9BOv58Pcc6EdrKV3wSK5lkKkDLhqGFjwjUua0gZDZD'},
+            method: 'POST',
+            json: {
+              recipient: {id: sender},
+              message: {text: 'I\'m sorry. I did not receive any data. Please try again!'}
+            }
+          });
         }
       });
     }, function (err) {
