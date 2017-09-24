@@ -130,7 +130,7 @@ function sendMessage(event) {
               if(data.length > 1) {
 
                 var blank='_______';
-                var newText = '';
+                var newText = answer + ':::';
                 answer = data[0].name;
                 console.log(answer.length);
 
