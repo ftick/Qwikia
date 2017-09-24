@@ -151,7 +151,7 @@ function sendMessage(event) {
                 console.log(answer.length);
 
                 // Insert blanks into all occurrences of answer within question
-                var arrAns = data[0].split(answer);
+                var arrAns = articlesData[0].split(answer);
                 for(i in arrAns){
                   newText += arrAns[i];
                   if(i < arrAns.length - 1){
