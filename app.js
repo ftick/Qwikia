@@ -9,6 +9,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const DEBUG = true;
+var answer = null;
+var articlesData = [];
 
 const server = app.listen(process.env.PORT || 3000, () => {
   console.log('Express server listening on port %d in %s mode', server.address().port, app.settings.env);
@@ -21,7 +23,9 @@ function sendMessage(event) {
   var FACEBOOK_VERIFICATION_TOKEN = process.env.FACEBOOK_VERIFICATION_TOKEN;
   let sender = event.sender.id;
   var topic = event.message.text.replace(/\s/g, ""); // Removing whitespace from input to use in request url
-  function wikiNotFoundError() { // generalized error message when no data for questions is found
+
+  // generalized error message when no data for questions is found
+  function wikiNotFoundError() {
     request({ // request to facebook page to send error message
       url: 'https://graph.facebook.com/v2.10/me/messages',
       qs: { access_token: FACEBOOK_ACCESS_TOKEN },
@@ -33,6 +37,7 @@ function sendMessage(event) {
     });
   }
 
+  //
   function sendQuestion(articlesData) {
     var siteUrl = 'https://language.googleapis.com/v1beta2/documents:analyzeEntities?key=' + GOOGLE_API_KEY; // Google NLP API url
     var options =
@@ -59,21 +64,21 @@ function sendMessage(event) {
         });
         if (data.length > 1) {
           var blank='_______';
-          var key = data[0].name;
-          console.log(key.length);
+          answer = data[0].name;
+          console.log(answer.length);
 
           var newText = '';
-          if(DEBUG) newText += key + ':::\n\n';
+          if(DEBUG) newText += answer + ':::\n\n';
 
           // Insert blanks into all occurrences of answer within question
-          var arrAns = articlesData[0].split(key);
+          var arrAns = articlesData[0].split(answer);
           for(var i in arrAns){
             newText += arrAns[i];
             if(i < arrAns.length - 1){
               newText += blank;
             }
           }
-          console.log('ANSWER: ' + key);
+          console.log('ANSWER: ' + answer);
           request({
             url: 'https://graph.facebook.com/v2.10/me/messages',
             qs: { access_token: FACEBOOK_ACCESS_TOKEN },
@@ -83,6 +88,8 @@ function sendMessage(event) {
               message: { text: newText }
             }
           });
+          // Remove element so question  won't be asked again
+          articlesData.shift();
         }
         else {
           wikiNotFoundError();
@@ -91,8 +98,9 @@ function sendMessage(event) {
     });
   }
 
+  //
   function get50Questions(articles, callback) {
-    var articlesData = [];
+    articlesData = [];
     async.forEachOf(articles, function (value, key, callback) {
       var siteUrl = 'http://' + topic + '.wikia.com/api/v1/Articles/AsSimpleJson?id=' + value; // wikia API url
       request.get(siteUrl, function (error, response, body) {
@@ -128,6 +136,7 @@ function sendMessage(event) {
     });
   }
 
+  //
   function getFiftyArticles() {
     var articles = [];
     var siteUrl = 'http://' + topic + '.wikia.com/api/v1/Articles/Top?Limit=250';
@@ -155,10 +164,27 @@ function sendMessage(event) {
       }
     });
   }
-  getFiftyArticles();
+
+  //
+  if(!answer) {
+    getFiftyArticles();
+  } else {
+    var reply = (topic.toLowerCase() === answer.toLowerCase()) ? 'Correct!' : 'Incorrect!';
+    request({
+      url: 'https://graph.facebook.com/v2.10/me/messages',
+      qs: { access_token: FACEBOOK_ACCESS_TOKEN },
+      method: 'POST',
+      json: {
+        recipient: { id: sender },
+        message: { text: reply }
+      }
+    });
+    sendQuestion(articlesData);
+  }
 }
 
-app.get('/webhook', (req, res) => { // For Facebook Webhook Verification
+// For Facebook Webhook Verification
+app.get('/webhook', (req, res) => {
   if (req.query['hub.mode'] && req.query['hub.verify_token'] === FACEBOOK_VERIFICATION_TOKEN) {
     res.status(200).send(req.query['hub.challenge']);
   } else {
@@ -166,6 +192,7 @@ app.get('/webhook', (req, res) => { // For Facebook Webhook Verification
   }
 });
 
+// Handle user input
 app.post('/webhook', (req, res) => {
   if (req.body.object === 'page') {
     req.body.entry.forEach((entry) => {
